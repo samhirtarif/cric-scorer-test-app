@@ -227,6 +227,7 @@ export function makeServer() {
 
         // Return 304 if no updates since last poll
         if (currentMatch.lastUpdate <= lastUpdate) {
+          console.log("NO UPDATE")
           return new Response(304, {}, null);
         }
 

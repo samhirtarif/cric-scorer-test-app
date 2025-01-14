@@ -5,6 +5,7 @@ import MatchSetup from './components/MatchSetup.js'
 import { Flex, Text, Input } from "theme-ui"
 import { ChangeEvent, ChangeEventHandler, useState } from "react"
 import Scorer from "./components/Scorer.js"
+import Viewer from "./components/Viewer.js"
 
 // initialize mirage server
 if (process.env.NODE_ENV === "development") {
@@ -24,12 +25,14 @@ function App() {
         <Flex sx={{flexDirection: "column"}}>
           <Link to="/setup">Start match</Link>
           <Link to="/scorer">Open scorer</Link>
+          <Link to="/match/1">Open Viewer</Link>
           {/* <Text>Match ID:</Text>
           <Input value={matchID} onChange={onMatchIDChange}/> */}
         </Flex>
         <Routes>
           <Route path="/setup" element={<MatchSetup />} />
           <Route path="/scorer" element={<Scorer />} />
+          <Route path="/match/:id" element={<Viewer />} />
         </Routes>
       </BrowserRouter>
     </>

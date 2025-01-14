@@ -28,7 +28,11 @@ export const crickerScorerApi = createApi({
         body: ballDetails,
       }),
     }),
+    getLiveUpdate: builder.query({
+      // since there can only be one match as per server.js, currently hard-coding to 1
+      query: () => "/matches/1/live",
+    }),
   }),
 })
 
-export const { useGetTeamsQuery, useAddMatchMutation, useGetMatchQuery, useUpdateMatchMutation } = crickerScorerApi
+export const { useGetTeamsQuery, useAddMatchMutation, useGetMatchQuery, useUpdateMatchMutation, useGetLiveUpdateQuery } = crickerScorerApi
