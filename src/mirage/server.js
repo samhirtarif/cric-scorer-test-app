@@ -31,7 +31,7 @@ const TEAMS = [
       { id: "IND7", name: "PlayerIND G", role: "Bowler" },
       { id: "IND8", name: "PlayerIND H", role: "Bowler" },
       { id: "IND9", name: "PlayerIND I", role: "Bowler" },
-      { id: "IND10", name: "PlayerIND J", role: "AllRounder" },
+      { id: "IND10", name: "PlayerIND J", role: "Bowler" },
       { id: "IND11", name: "PlayerIND K", role: "AllRounder" },
     ]
   },
@@ -48,7 +48,7 @@ const TEAMS = [
       { id: "PAK7", name: "PlayerPAK G", role: "Bowler" },
       { id: "PAK8", name: "PlayerPAK H", role: "Bowler" },
       { id: "PAK9", name: "PlayerPAK I", role: "Bowler" },
-      { id: "PAK10", name: "PlayerPAK  J", role: "AllRounder" },
+      { id: "PAK10", name: "PlayerPAK  J", role: "Bowler" },
       { id: "PAK11", name: "PlayerPAK  K", role: "AllRounder" },
     ]
   },
@@ -65,7 +65,7 @@ const TEAMS = [
       { id: "AUS7", name: "PlayerAUS G", role: "Bowler" },
       { id: "AUS8", name: "PlayerAUS H", role: "Bowler" },
       { id: "AUS9", name: "PlayerAUS I", role: "Bowler" },
-      { id: "AUS10", name: "PlayerAUS J", role: "AllRounder" },
+      { id: "AUS10", name: "PlayerAUS J", role: "Bowler" },
       { id: "AUS11", name: "PlayerAUS K", role: "AllRounder" },
     ]
   },
@@ -82,7 +82,7 @@ const TEAMS = [
       { id: "ENG7", name: "PlayerENG G", role: "Bowler" },
       { id: "ENG8", name: "PlayerENG H", role: "Bowler" },
       { id: "ENG9", name: "PlayerENG I", role: "Bowler" },
-      { id: "ENG10", name: "PlayerENG J", role: "AllRounder" },
+      { id: "ENG10", name: "PlayerENG J", role: "Bowler" },
       { id: "ENG11", name: "PlayerENG K", role: "AllRounder" },
     ]
   },
@@ -118,9 +118,34 @@ export function makeServer() {
 
         // TODO: Validate team selection
 
+        const tossLoser = attrs.team1Id === attrs.tossWinner ? attrs.team2Id : attrs.team1Id; 
+        const batting = attrs.tossDecision === 'bat' ? attrs.tossWinner : tossLoser;
+        const bowling = attrs.tossDecision === 'bowl' ? attrs.tossWinner : tossLoser;
+
         const match = {
           id: `match_${Date.now()}`,
-          // TODO: Set up initial match state based on toss decision
+          currentInning: 1,
+          batting: batting,
+          bowling: bowling,
+          battingDisplayName: TEAMS.find(t => t.id === batting).name,
+          bowlingDisplayName: TEAMS.find(t => t.id === bowling).name,
+          inning1: {
+            currentOvers: 0,
+            striker: TEAMS.find(t => t.id === batting).players[0],
+            nonStriker: TEAMS.find(t => t.id === batting).players[1],
+            bowler: TEAMS.find(t => t.id === bowling).players[5], // bowlers start at 5
+            ballNumber: 0,
+            score: 0,
+            wickets: 0,
+            extras: 0,
+          },
+          inning2: {
+            currentOvers: 0,
+            ballNumber: 0,
+            score: 0,
+            wickets: 0,
+            extras: 0,
+          },
           lastUpdate: Date.now()
         };
 
@@ -149,6 +174,40 @@ export function makeServer() {
         if (!currentMatch) {
           return new Response(400, {}, { error: 'No active match' });
         }
+
+        if (currentMatch.currentInning === 1) {
+
+          // only update overs/balls when no extra
+          if (!update.extra) {
+            currentMatch.inning1.ballNumber++;
+            if (currentMatch.inning1.ballNumber === 6) {
+              currentMatch.inning1.ballNumber = 0
+              currentMatch.inning1.currentOvers++;
+  
+              if (currentMatch.inning1.currentOvers === 5) {
+                currentMatch.currentInning = 2
+              }
+            }
+          }
+
+          if (update.runs) {
+            currentMatch.inning1.score += update.runs
+          }
+
+          if (update.extra) {
+            currentMatch.inning1.score += 1
+          }
+
+          if (update.wicket) {
+            currentMatch.inning1.wickets += 1
+
+            if (currentMatch.inning1.wickets === 10) {
+              currentMatch.currentInning = 2
+            }
+          }
+        }
+
+        console.log(currentMatch)
 
         // Update match state
         const newState = {

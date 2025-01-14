@@ -2,6 +2,7 @@ import { useAddMatchMutation, useGetTeamsQuery } from '../features/api/apiSlice'
 import { Button, Flex, Text } from 'theme-ui'
 import { Team } from '../types/team'
 import { useState } from 'react'
+import { useNavigate } from 'react-router'
 
 
 const TextStyle = {
@@ -15,14 +16,14 @@ const MatchSetup = () => {
   const [tossSelection, setTossSelection] = useState<string>();
   const [tossResult, setTossResult] = useState<string>();
   const [tossWonBy, setTossWonBy] = useState<string>();
-  const [tossDecision, setTossDecision] = useState<string>();
+  const [
+    addMatch
+  ] = useAddMatchMutation()
+  const navigate = useNavigate();
 
   if (isLoading) return <span>Loading</span>
   if (isError) return <span>Sorry, an error occurred</span>
 
-  const [
-    addMatch
-  ] = useAddMatchMutation()
 
 
   const onTeam1Click = (id: string) => setSelectedTeam1(id);
@@ -30,11 +31,10 @@ const MatchSetup = () => {
   const conductToss = () => {
     const toss = Math.round(Math.random() * 1) === 0 ? "Heads" : "Tails";
     setTossResult(toss)
-    setTossWonBy(tossSelection === toss ? selectedTeam1 : selectedTeam2);
+    setTossWonBy(tossSelection?.toLowerCase() === toss.toLowerCase() ? selectedTeam1 : selectedTeam2);
   }
 
   const onTossDecision = (decision: "bat" | "bowl") => {
-    setTossDecision(decision)
     if (!selectedTeam1 || !selectedTeam2 || !tossWonBy || !decision) return;
 
     addMatch({
@@ -42,7 +42,7 @@ const MatchSetup = () => {
       team2Id: selectedTeam2,
       tossWinner: tossWonBy,
       tossDecision: decision
-    })
+    }).then(() => navigate("/"))
   }
 
   return (
